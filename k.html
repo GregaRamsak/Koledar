@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Koledar</title>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+  <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,300,700,600' rel='stylesheet' type='text/css'>
+  <style>
+    /* blue: 176db3; red: c20000; green: 008f11 */
+    
+    html,
+    body {
+      min-width: 100%;
+      width: 100%;
+      min-height: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      /* font-family: Verdana;*/
+      
+      font-family: 'Open Sans', sans-serif;
+      text-align: center;
+      font-size: 13px;
+      color: #666;
+    }
+    
+    table {
+      border-collapse: collapse;
+      border-spacing: 0px;
+    }
+    
+    .clear {
+      clear: both;
+    }
+    
+    #holder {
+      margin: 0 auto;
+      width: 925px;
+    }
+    
+    .m {
+      /* month */
+      
+      border: 1px solid #BBB;
+      float: left;
+      margin: 7px 5px;
+    }
+    
+    .m div:first-child {
+      /* month name */
+      
+      border-bottom: 1px solid #eee;
+      font-size: 16px;
+      font-weight: bold;
+      /* color: #3877BA; */
+      
+      color: #548FCD;
+      /* padding: 4px; */
+      
+      padding: 3px;
+    }
+    /* --- Days --- */
+    
+    .m td {
+      width: 20px;
+      /* padding: 3px 10px; */
+      
+      padding: 2px 10px;
+    }
+    
+    .m td {
+      border: 1px solid #eee;
+    }
+    
+    .m td:first-child {
+      border-left: none;
+    }
+    
+    .m td:last-child {
+      border-right: none;
+    }
+    
+    .m tr:first-child td {
+      border-top: none;
+    }
+    
+    .m tr:last-child td {
+      border-bottom: none;
+    }
+    
+    .pm,
+    /* prev month days */
+    
+    .nm
+    /* next month days */
+    
+    {
+      opacity: 0.3;
+    }
+    /* --- Days --- End */
+    /* --- Weekend --- */
+    
+    .m td:nth-last-child(2) {
+      color: #b00000;
+    }
+    
+    .m td:last-child {
+      color: #b00000;
+      font-weight: bold;
+    }
+    /* --- Weekend --- End */
+    /* --- Work free days --- */
+    /* .hd, .fd, .m td:nth-last-child(2), .m td:last-child { */
+    
+    .hd,
+    .fd,
+    .fdm {
+      background-color: rgba(0, 0, 0, 0.03);
+    }
+    
+    .cd,
+    .hd,
+    .fd,
+    .fdm {
+      font-weight: bold;
+    }
+    
+    .cd {}
+    
+    .hd {
+      color: #B00000;
+    }
+    
+    .fd {
+      color: #008F11;
+    }
+    
+    .fdm {
+      color: #7D2DB3;
+    }
+    /* --- Work free days --- End */
+    /* --- Toolbar --- */
+    
+    .tool {
+      display: inline-block;
+      margin: 0 10px;
+      font-weight: bold;
+      opacity: 0.5;
+    }
+    
+    .tool:hover {
+      cursor: pointer;
+      opacity: 1;
+    }
+    
+    #dYear,
+    .tool {
+      font-size: 15px;
+    }
+    /* --- Toolbar --- End */
+  </style>
+
+  <style>
+    /* -- DARK -- */
+    /* blue: 176db3; red: c20000; green: 008f11 */
+    
+    body.dark {
+      color: #666;
+      background-color: #222;
+    }
+    
+    .dark .m {
+      /* month */
+      
+      border: 1px solid rgba(100, 100, 100, 0.2);
+    }
+    
+    .dark .m div:first-child {
+      /* month name */
+      
+      border-bottom: 1px solid rgba(100, 100, 100, 0.2);
+      color: #3C6691;
+    }
+    /* --- Days --- */
+    
+    .dark .m td {
+      border: 1px solid rgba(100, 100, 100, 0.2);
+    }
+    /* --- Weekend --- */
+    
+    .dark .m td:nth-last-child(2) {
+      color: #b00000;
+    }
+    
+    .dark .m td:last-child {
+      color: #b00000;
+    }
+    /* --- Weekend --- End */
+    /* --- Work free days --- */
+    
+    .dark .hd,
+    .dark .fd,
+    .dark .fdm {
+      background-color: rgba(255, 255, 255, 0.03);
+    }
+    
+    .dark .hd {
+      color: #B00000;
+    }
+    
+    .dark .fd {
+      color: #008F11;
+    }
+    
+    .dark .fdm {
+      color: #7D2DB3;
+    }
+    /* --- Work free days --- End */
+  </style>
+
+
+
+  <script>
+    var months = ['Januar', 'Februar', 'Marec', 'April', 'Maj', 'Junij', 'Julij', 'Avgust', 'September', 'Oktober', 'November', 'December'];
+    var dayNames = ['po', 'to', 'sr', 'če', 'pe', 'so', 'ne'];
+    var maxRows = 7;
+    var holidays, freedays, days, freedays_m;
+
+    function drawCalendar(holder) {
+      var yearParam = getParameterByName('year');
+      yearParam = (yearParam === undefined || yearParam === '') ? yearParam = new Date().getFullYear() : parseInt(yearParam);
+      days = getTotalMonthDays();
+      holidays = getHolidays(yearParam);
+      freedays = getFreedays(yearParam);
+      freedays_m = getMFreedays(yearParam);
+      for (var i in months) {
+        var m = getMonthElement(months[i]);
+        $(m).append(getDays(parseInt(i), yearParam));
+        $('#' + holder).append($(m));
+      }
+    }
+
+    function getParameterByName(name) {
+      name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+      var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(location.search);
+      return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+    }
+
+    function getMonthElement(name) {
+      var m = $(document.createElement('div')).attr('class', 'm');
+      $(m).append($(document.createElement('div')).text(name));
+      return $(m);
+    }
+
+    function getDays(month, year) {
+      var datee = new Date();
+      datee.setFullYear(year, month, 1);
+      return getMonthDays(datee, days);
+    }
+
+    function getMonthDays(date, totalMonthDays) {
+      var firstDay = true;
+      var table = document.createElement('table');
+      var row = document.createElement('tr');
+      $(table).append(row);
+      for (var i in dayNames) {
+        $(row).append('<td class="dn">' + dayNames[i] + '</td>');
+      }
+      for (var i = 1; i <= totalMonthDays[date.getMonth()]; i++) {
+        var current = new Date();
+        current.setFullYear(date.getFullYear(), date.getMonth(), i);
+        var dayFix = current.getDay() - 1;
+        dayFix = dayFix === -1 ? 6 : dayFix;
+        if (firstDay && dayFix > 0) {
+          row = document.createElement('tr');
+          $(table).append(row);
+          for (var d = 0; d < dayFix; d++) {
+            $(row).append('<td class="pm">' + getPrevMonthDate(current, ((d - dayFix))).getDate() + '</td>');
+          }
+        }
+        if (dayFix === 0) {
+          row = document.createElement('tr');
+          $(table).append(row);
+          $(row).append(getDay(current));
+        } else {
+          $(row).append(getDay(current));
+        }
+
+        if ((i === totalMonthDays[date.getMonth()])) {
+          var lastNextDay = 1;
+          if (dayFix < 6) {
+            for (var d = dayFix; d < 6; d++) {
+              lastNextDay = ((d - dayFix) + 1) + 1;
+              $(row).append('<td class="nm">' + getPrevMonthDate(current, ((d - dayFix) + 1)).getDate() + '</td>');
+            }
+          }
+          if ($(table).children().children().length < maxRows) {
+            row = document.createElement('tr');
+            $(table).append(row);
+            for (var d = 0; d <= 6; d++) {
+              $(row).append('<td class="nm">' + getPrevMonthDate(current, (d + lastNextDay)).getDate() + '</td>');
+            }
+          }
+        }
+        firstDay = false;
+      }
+      return table;
+    }
+
+    function getDay(date) {
+      return isHoliday(date, '<td>' + date.getDate() + '</td>');
+    }
+
+    function isHoliday(date, element) {
+      var today = new Date();
+      today.setHours(0, 0, 0, 0);
+      date.setHours(0, 0, 0, 0);
+      if (date.getTime() === today.getTime()) {
+        return $(element).addClass('cd');
+      }
+      for (var i in holidays) {
+        if (date.getTime() === holidays[i].getTime())
+          return $(element).addClass('hd');
+      }
+      for (var i in freedays) {
+        if (date.getTime() === freedays[i].getTime())
+          return $(element).addClass('fd');
+      }
+      for (var i in freedays_m) {
+        if (date.getTime() === freedays_m[i].getTime())
+          return $(element).addClass('fdm');
+      }
+      return element;
+    }
+
+    function getPrevMonthDate(current, prevMonthDay) {
+      var prevMonthDate = new Date(current);
+      prevMonthDate = new Date(prevMonthDate.setDate(prevMonthDate.getDate() + prevMonthDay));
+      return prevMonthDate;
+    }
+
+    /* --- Global --- */
+    function getTotalMonthDays() {
+      var current = new Date();
+      var year = current.getFullYear();
+      var totalDays = [31, getFebDays(year), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+      return totalDays;
+    }
+
+    function getFebDays(year) {
+      if ((year % 100 !== 0) && (year % 4 === 0) || (year % 400 === 0)) {
+        return 29;
+      } else {
+        return 28;
+      }
+    }
+
+    function getHolidays(year) {
+      var _holidays = new Array();
+      year = (year === undefined) ? new Date().getFullYear() : year;
+      switch (year) {
+      case 2013:
+        _holidays.push(generateDate(2013, 1, 1));
+        _holidays.push(generateDate(2013, 2, 8));
+        _holidays.push(generateDate(2013, 4, 27));
+        _holidays.push(generateDate(2013, 5, 1));
+        _holidays.push(generateDate(2013, 5, 2));
+        _holidays.push(generateDate(2013, 7, 25));
+        _holidays.push(generateDate(2013, 8, 15));
+        _holidays.push(generateDate(2013, 10, 31));
+        _holidays.push(generateDate(2013, 11, 1));
+        _holidays.push(generateDate(2013, 12, 25));
+        _holidays.push(generateDate(2013, 12, 26));
+        break;
+      case 2014:
+        _holidays.push(generateDate(2014, 1, 1));
+        _holidays.push(generateDate(2014, 2, 8));
+        _holidays.push(generateDate(2014, 4, 21));
+        _holidays.push(generateDate(2014, 4, 27));
+        _holidays.push(generateDate(2014, 5, 1));
+        _holidays.push(generateDate(2014, 5, 2));
+        _holidays.push(generateDate(2014, 6, 25));
+        _holidays.push(generateDate(2014, 8, 15));
+        _holidays.push(generateDate(2014, 10, 31));
+        _holidays.push(generateDate(2014, 11, 1));
+        _holidays.push(generateDate(2014, 12, 25));
+        _holidays.push(generateDate(2014, 12, 26));
+        break;
+      case 2015:
+        _holidays.push(generateDate(2015, 1, 1));
+        _holidays.push(generateDate(2015, 2, 8));
+        _holidays.push(generateDate(2015, 4, 6));
+        _holidays.push(generateDate(2015, 4, 27));
+        _holidays.push(generateDate(2015, 5, 1));
+        _holidays.push(generateDate(2015, 5, 2));
+        _holidays.push(generateDate(2015, 6, 25));
+        _holidays.push(generateDate(2015, 8, 15));
+        _holidays.push(generateDate(2015, 10, 31));
+        _holidays.push(generateDate(2015, 11, 1));
+        _holidays.push(generateDate(2015, 12, 25));
+        _holidays.push(generateDate(2015, 12, 26));
+        break;
+      }
+      return _holidays;
+    }
+
+    function getFreedays(year) {
+      var freedays = new Array();
+      if (year === undefined) {
+        year = new Date().getFullYear();
+      }
+      switch (year) {
+      case 2013:
+        freedays.push(generateDate(2013, 12, 23));
+        freedays.push(generateDate(2013, 12, 24));
+        freedays.push(generateDate(2013, 12, 27));
+        freedays.push(generateDate(2013, 12, 30));
+        freedays.push(generateDate(2013, 12, 31));
+        break;
+      case 2014:
+        freedays.push(generateDate(2014, 1, 2));
+        freedays.push(generateDate(2014, 1, 3));
+        freedays.push(generateDate(2014, 4, 28));
+        freedays.push(generateDate(2014, 4, 29));
+        freedays.push(generateDate(2014, 4, 30));
+        freedays.push(generateDate(2014, 12, 29));
+        freedays.push(generateDate(2014, 12, 30));
+        freedays.push(generateDate(2014, 12, 31));
+        break;
+      case 2015:
+        freedays.push(generateDate(2015, 1, 2));
+        freedays.push(generateDate(2015, 4, 28));
+        freedays.push(generateDate(2015, 4, 3));
+        freedays.push(generateDate(2015, 4, 7));
+        freedays.push(generateDate(2015, 4, 29));
+        freedays.push(generateDate(2015, 4, 30));
+        freedays.push(generateDate(2015, 6, 26));
+
+        freedays.push(generateDate(2015, 7, 20)); // Kolektivni
+        freedays.push(generateDate(2015, 7, 21));
+        freedays.push(generateDate(2015, 7, 22));
+        freedays.push(generateDate(2015, 7, 23));
+        freedays.push(generateDate(2015, 7, 24));
+        freedays.push(generateDate(2015, 7, 27));
+        freedays.push(generateDate(2015, 7, 28));
+        freedays.push(generateDate(2015, 7, 29));
+        freedays.push(generateDate(2015, 7, 30));
+        freedays.push(generateDate(2015, 7, 31)); // Kolektivni konec
+
+        freedays.push(generateDate(2015, 12, 28));
+        freedays.push(generateDate(2015, 12, 29));
+        freedays.push(generateDate(2015, 12, 30));
+        freedays.push(generateDate(2015, 12, 31));
+        break;
+      }
+      return freedays;
+    }
+
+    function getMFreedays(year) {
+      var _freedays = new Array();
+      if (year === undefined) {
+        year = new Date().getFullYear();
+      }
+      switch (year) {
+      case 2014:
+        _freedays.push(generateDate(2014, 7, 26));
+        _freedays.push(generateDate(2014, 7, 27));
+        _freedays.push(generateDate(2014, 7, 28));
+        _freedays.push(generateDate(2014, 7, 29));
+        _freedays.push(generateDate(2014, 7, 30));
+        _freedays.push(generateDate(2014, 7, 31));
+        _freedays.push(generateDate(2014, 8, 1));
+        _freedays.push(generateDate(2014, 8, 2));
+        _freedays.push(generateDate(2014, 8, 3));
+        _freedays.push(generateDate(2014, 8, 4));
+        _freedays.push(generateDate(2014, 8, 5));
+        _freedays.push(generateDate(2014, 8, 6));
+        _freedays.push(generateDate(2014, 8, 7));
+        _freedays.push(generateDate(2014, 8, 8));
+        _freedays.push(generateDate(2014, 8, 9));
+        _freedays.push(generateDate(2014, 8, 10));
+        break;
+      case 2015:
+        _freedays.push(generateDate(2015, 1, 2));
+        _freedays.push(generateDate(2015, 4, 28));
+        _freedays.push(generateDate(2015, 4, 29));
+        _freedays.push(generateDate(2015, 4, 30));
+
+        _freedays.push(generateDate(2015, 6, 26));
+
+        _freedays.push(generateDate(2015, 7, 27));
+        _freedays.push(generateDate(2015, 7, 28));
+        _freedays.push(generateDate(2015, 7, 29));
+        _freedays.push(generateDate(2015, 7, 30));
+        _freedays.push(generateDate(2015, 7, 31));
+
+        // _freedays.push(generateDate(2015, 8, 1));
+        // _freedays.push(generateDate(2015, 8, 2));
+        _freedays.push(generateDate(2015, 8, 3));
+        _freedays.push(generateDate(2015, 8, 4));
+        _freedays.push(generateDate(2015, 8, 5));
+        _freedays.push(generateDate(2015, 8, 6));
+        _freedays.push(generateDate(2015, 8, 7));
+
+        _freedays.push(generateDate(2015, 12, 24));
+        _freedays.push(generateDate(2015, 12, 27));
+        _freedays.push(generateDate(2015, 12, 28));
+        _freedays.push(generateDate(2015, 12, 29));
+        _freedays.push(generateDate(2015, 12, 30));
+        _freedays.push(generateDate(2015, 12, 31));
+      }
+      return _freedays;
+    }
+
+    function generateDate(year, month, day) {
+      var date = new Date();
+      date.setFullYear(year, month - 1, day);
+      date.setHours(0, 0, 0, 0);
+      return date;
+    }
+
+    /* ---- Year handler ---- */
+
+    /* ---- Year handler ---- End */
+  </script>
+</head>
+
+<body>
+  <div id="holder"></div>
+  <script>
+    drawCalendar('holder');
+  </script>
+  <div class="clear"></div>
+  <div style="text-align: center;">
+    <div id="prevYear" class="tool">&#60;</div><span id="dYear">2014</span>
+    <div id="nextYear" class="tool">&#62;</div>
+  </div>
+  <script>
+    var paramYear = getParameterByName('year');
+    var year = new Date().getFullYear();
+    paramYear = (paramYear === undefined || paramYear === null || paramYear === "") ? year : paramYear;
+    $('#dYear').text(paramYear);
+    $('#prevYear').click(function () {
+      var currentYear = parseInt($('#dYear').text());
+      $('#dYear').text(--currentYear);
+      window.location.search = '?' + $.param({
+        year: currentYear
+      });
+    });
+    $('#nextYear').click(function () {
+      var currentYear = parseInt($('#dYear').text());
+      $('#dYear').text(++currentYear);
+      window.location.search = '?' + $.param({
+        year: currentYear
+      });
+    });
+    $('body').click(function () {
+      $('body').toggleClass('dark');
+    });
+  </script>
+</body>
+
+</html>
