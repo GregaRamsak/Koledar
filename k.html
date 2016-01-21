@@ -9,6 +9,16 @@
   <style>
     /* blue: 176db3; red: c20000; green: 008f11 */
     
+    * {
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -khtml-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      cursor: default;
+    }
+    
     html,
     body {
       min-width: 100%;
@@ -17,17 +27,11 @@
       height: 100%;
       margin: 0;
       padding: 0;
-     
-      -webkit-touch-callout: none;
-      -webkit-user-select: none;
-      -khtml-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
     }
     
     body {
       /* font-family: Verdana;*/
+      
       font-family: 'Open Sans', sans-serif;
       text-align: center;
       font-size: 13px;
@@ -50,6 +54,7 @@
     
     .m {
       /* month */
+      
       border: 1px solid #BBB;
       float: left;
       margin: 7px 5px;
@@ -57,12 +62,15 @@
     
     .m div:first-child {
       /* month name */
+      
       border-bottom: 1px solid #eee;
       font-size: 16px;
       font-weight: bold;
       /* color: #3877BA; */
+      
       color: #548FCD;
       /* padding: 4px; */
+      
       padding: 3px;
     }
     /* --- Days --- */
@@ -70,6 +78,7 @@
     .m td {
       width: 20px;
       /* padding: 3px 10px; */
+      
       padding: 2px 10px;
     }
     
@@ -162,6 +171,10 @@
     .tool {
       font-size: 15px;
     }
+    
+    #dYear {
+      margin-right: -5px;
+    }
     /* --- Toolbar --- End */
   </style>
 
@@ -176,11 +189,13 @@
     
     .dark .m {
       /* month */
+      
       border: 1px solid rgba(100, 100, 100, 0.2);
     }
     
     .dark .m div:first-child {
       /* month name */
+      
       border-bottom: 1px solid rgba(100, 100, 100, 0.2);
       color: #3C6691;
     }
@@ -404,6 +419,20 @@
         _holidays.push(generateDate(2015, 12, 25));
         _holidays.push(generateDate(2015, 12, 26));
         break;
+      case 2016:
+        _holidays.push(generateDate(2016, 1, 1));
+        _holidays.push(generateDate(2016, 2, 8));
+        _holidays.push(generateDate(2016, 4, 6));
+        _holidays.push(generateDate(2016, 4, 27));
+        _holidays.push(generateDate(2016, 5, 1));
+        _holidays.push(generateDate(2016, 5, 2));
+        _holidays.push(generateDate(2016, 6, 25));
+        _holidays.push(generateDate(2016, 8, 15));
+        _holidays.push(generateDate(2016, 10, 31));
+        _holidays.push(generateDate(2016, 11, 1));
+        _holidays.push(generateDate(2016, 12, 25));
+        _holidays.push(generateDate(2016, 12, 26));
+        break;
       }
       return _holidays;
     }
@@ -455,6 +484,15 @@
         freedays.push(generateDate(2015, 12, 29));
         freedays.push(generateDate(2015, 12, 30));
         freedays.push(generateDate(2015, 12, 31));
+        break;
+      case 2016:
+        freedays.push(generateDate(2016, 1, 2));
+        freedays.push(generateDate(2016, 4, 28));
+        freedays.push(generateDate(2016, 4, 29));
+        freedays.push(generateDate(2016, 12, 27));      
+        freedays.push(generateDate(2016, 12, 28));
+        freedays.push(generateDate(2016, 12, 29));
+        freedays.push(generateDate(2016, 12, 30));
         break;
       }
       return freedays;
@@ -525,6 +563,22 @@
 
     /* ---- Year handler ---- */
 
+    function prevYear() {
+      var currentYear = parseInt($('#dYear').text());
+      $('#dYear').text(--currentYear);
+      window.location.search = '?' + $.param({
+        year: currentYear
+      });
+    }
+
+    function nextYear() {
+      var currentYear = parseInt($('#dYear').text());
+      $('#dYear').text(++currentYear);
+      window.location.search = '?' + $.param({
+        year: currentYear
+      });
+    }
+
     /* ---- Year handler ---- End */
   </script>
 </head>
@@ -545,21 +599,27 @@
     paramYear = (paramYear === undefined || paramYear === null || paramYear === "") ? year : paramYear;
     $('#dYear').text(paramYear);
     $('#prevYear').click(function () {
-      var currentYear = parseInt($('#dYear').text());
-      $('#dYear').text(--currentYear);
-      window.location.search = '?' + $.param({
-        year: currentYear
-      });
+      prevYear();
     });
     $('#nextYear').click(function () {
-      var currentYear = parseInt($('#dYear').text());
-      $('#dYear').text(++currentYear);
-      window.location.search = '?' + $.param({
-        year: currentYear
-      });
+      nextYear();
     });
     $('body').dblclick(function () {
       $('body').toggleClass('dark');
+    });
+
+    $(document).keydown(function (e) {
+      switch (e.which) {
+      case 37: // left
+        prevYear();
+        break;
+      case 39: // right
+        nextYear()
+        break;
+      default:
+        return; // exit this handler for other keys
+      }
+      e.preventDefault(); // prevent the default action (scroll / move caret)
     });
   </script>
 </body>
