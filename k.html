@@ -234,6 +234,14 @@
       color: #7D2DB3;
     }
     /* --- Work free days --- End */
+    
+    .dark .m td:first-child {
+      border-left: none;
+    }
+    
+    .dark .m td:last-child {
+      border-right: none;
+    }
   </style>
 
 
@@ -422,7 +430,6 @@
       case 2016:
         _holidays.push(generateDate(2016, 1, 1));
         _holidays.push(generateDate(2016, 2, 8));
-        _holidays.push(generateDate(2016, 4, 6));
         _holidays.push(generateDate(2016, 4, 27));
         _holidays.push(generateDate(2016, 5, 1));
         _holidays.push(generateDate(2016, 5, 2));
@@ -489,7 +496,7 @@
         freedays.push(generateDate(2016, 1, 2));
         freedays.push(generateDate(2016, 4, 28));
         freedays.push(generateDate(2016, 4, 29));
-        freedays.push(generateDate(2016, 12, 27));      
+        freedays.push(generateDate(2016, 12, 27));
         freedays.push(generateDate(2016, 12, 28));
         freedays.push(generateDate(2016, 12, 29));
         freedays.push(generateDate(2016, 12, 30));
